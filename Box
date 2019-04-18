@@ -1,0 +1,94 @@
+package edu.vt.cs5044;
+
+import java.util.Collection;
+import java.util.HashSet;
+
+/**
+ * Write a one-sentence summary of your class here. Follow it with additional details about its
+ * purpose, what abstraction it represents, and how to use it.
+ * 
+ * @author sugie
+ * @version 18 Oct 2018
+ */
+public class Box
+{
+    private Player                owner;
+    private Collection<Direction> drawnEdges;
+
+
+    /**
+     * Create a new Box object.
+     */
+    public Box()
+    {
+        owner = null;
+        drawnEdges = new HashSet<Direction>();
+    }
+
+
+    /**
+     * Get the current value of owner.
+     * 
+     * @return The value of owner for this object.
+     */
+    public Player getOwner()
+    {
+        return owner;
+    }
+
+
+    /**
+     * Get the current value of drawnEdges.
+     * 
+     * @return The value of drawnEdges for this object.
+     */
+    public Collection<Direction> getDrawnEdges()
+    {
+        return new HashSet<>(drawnEdges);
+    }
+
+
+    /**
+     * This method returns true if the owner completed a game.
+     * 
+     * @return a boolean based on whether the game is completed.
+     */
+    public Boolean isCompleted()
+    {
+        return owner != null;
+    }
+
+
+    /**
+     * This method adds an edge to a coordinate.
+     * 
+     * @param direction
+     *            to be placed
+     * @param player
+     *            who placed the direction
+     */
+    public void addEdge(Direction direction, Player player)
+    {
+        drawnEdges.add(direction);
+
+        if (drawnEdges.size() == 4)
+        {
+            owner = player;
+        }
+    }
+
+
+    /**
+     * This method checks whether a coordinate has an edge.
+     * 
+     * @param direction
+     *            to be placed
+     * @return returns a boolean based on whether its drawnEdge collection contains a specified
+     *         edge.
+     */
+    public boolean hasEdge(Direction direction)
+    {
+        return drawnEdges.contains(direction);
+    }
+
+}
