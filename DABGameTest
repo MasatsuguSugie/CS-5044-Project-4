@@ -1,0 +1,456 @@
+package edu.vt.cs5044;
+
+import static org.junit.Assert.*;
+import java.util.Collection;
+import java.util.Map;
+import org.junit.Before;
+import org.junit.Test;
+
+/**
+ * This is my Dots and Boxes test class.
+ * 
+ * @author mjohnsugie
+ * @version 9 Oct 2018
+ */
+public class DABGameTest
+{
+    private DotsAndBoxes game;
+
+
+    /**
+     * This is the set up for a new dots and boxes game.
+     */
+    @Before
+    public void setUp()
+    {
+        game = new DABGame();
+    }
+
+
+    /**
+     * Test method for the drawEdge method.
+     * {@link edu.vt.cs5044.DABGame#drawEdge(edu.vt.cs5044.Coordinate, edu.vt.cs5044.Direction)}.
+     */
+    @Test
+    public void testDrawEdge()
+    {
+        game.init(2);
+
+        Coordinate coord = new Coordinate(0, 1);
+        game.drawEdge(coord, Direction.RIGHT); // ACTION
+
+        assertTrue(game.getDrawnEdgesAt(coord).contains(Direction.RIGHT));
+        assertEquals(Player.TWO, game.getCurrentPlayer());
+    }
+
+
+    /**
+     * Test method for the getDrawnEdgesAt method.
+     * {@link edu.vt.cs5044.DABGame#getDrawnEdgesAt(edu.vt.cs5044.Coordinate)}.
+     */
+    @Test
+    public void testGetDrawnEdgesAt()
+    {
+        testDrawEdge();
+
+        Coordinate coord = new Coordinate(0, 1);
+        game.drawEdge(coord, Direction.BOTTOM); // ACTION
+
+        Collection<Direction> drawnEdges = game.getDrawnEdgesAt(coord);
+        assertEquals(2, drawnEdges.size());
+        assertTrue(drawnEdges.contains(Direction.RIGHT));
+        assertTrue(drawnEdges.contains(Direction.BOTTOM));
+
+        assertEquals(Player.ONE, game.getCurrentPlayer());
+    }
+
+
+    /**
+     * Test method for the getOwnerAt method.
+     * {@link edu.vt.cs5044.DABGame#getOwnerAt(edu.vt.cs5044.Coordinate)}.
+     */
+    @Test
+    public void testGetOwnerAt()
+    {
+        game.init(2);
+        Coordinate coord1 = new Coordinate(0, 0);
+        Direction dir = Direction.TOP;
+        game.drawEdge(coord1, dir); // ACTION
+
+        Direction dir1 = Direction.BOTTOM;
+        game.drawEdge(coord1, dir1);
+
+        Direction dir2 = Direction.RIGHT;
+        game.drawEdge(coord1, dir2);
+
+        Direction dir3 = Direction.LEFT;
+        game.drawEdge(coord1, dir3);
+
+        assertEquals(Player.TWO, game.getOwnerAt(coord1));
+    }
+
+
+    /**
+     * Test method for the getScores method. {@link edu.vt.cs5044.DABGame#getScores()}.
+     */
+    @Test
+    public void testGetScores()
+    {
+        testValidInitSize();
+        Map<Player, Integer> scoreMap = game.getScores();
+        assertEquals((Integer)0, scoreMap.get(Player.ONE));
+        assertEquals(0, (int)scoreMap.get(Player.TWO));
+    }
+
+
+    /**
+     * This is to check the GameException for getSize.
+     */
+    @Test(expected = GameException.class)
+    public void testGetSizeNotInit()
+    {
+        game.getSize();
+    }
+
+
+    /**
+     * This is to check the GameException for getCurrentPlayer.
+     */
+    @Test(expected = GameException.class)
+    public void testCurrentPlayerNotInit()
+    {
+        game.getCurrentPlayer();
+    }
+
+
+    /**
+     * This is to check the GameException for getScores.
+     */
+    @Test(expected = GameException.class)
+    public void testGetScoresNotInit()
+    {
+        game.getScores();
+    }
+
+
+    /**
+     * This is to check the GameException for getValidSizeInit.
+     */
+    @Test
+    public void testGetInvalidInitSizeTryCatch()
+    {
+        try
+        {
+            game.init(-1);
+            game.init(0);
+            game.init(1);
+            fail("invalid init size did not throw exception");
+        }
+        catch (GameException ge)
+        {
+            // PASS!!
+        }
+    }
+
+
+    /**
+     * This is to check the GameException for the init method.
+     */
+    @Test(expected = GameException.class)
+    public void testInvalidInitSize()
+    {
+        game.init(1);
+    }
+
+
+    /**
+     * This is to test for a valid init size.
+     */
+    @Test
+    public void testValidInitSize()
+    {
+        game.init(2); // ACTION
+
+        assertEquals(2, game.getSize());
+    }
+
+
+    /**
+     * This is to test if the first player is in fact player one.
+     */
+    @Test
+    public void testInitPlayerIsPlayerOne()
+    {
+        testValidInitSize(); // ACTION
+
+        assertEquals(Player.ONE, game.getCurrentPlayer());
+    }
+
+
+    /**
+     * This is to test if an edge is already drawn, if another will be made in the same spot.
+     */
+    @Test
+    public void testDrawAlreadyDrawnEdge()
+    {
+        testValidInitSize();
+
+        Coordinate coord10 = new Coordinate(1, 0);
+
+        game.drawEdge(coord10, Direction.RIGHT);
+
+        boolean drawEdgeResult = game.drawEdge(coord10, Direction.RIGHT); // ACTION
+
+        assertFalse(drawEdgeResult);
+    }
+
+
+    /**
+     * This is to test the current player after the init method.
+     */
+    @Test
+    public void testGetCurrentPlayerUponInit()
+    {
+        testValidInitSize(); // ACTION
+
+        assertEquals(Player.ONE, game.getCurrentPlayer());
+    }
+
+
+    /**
+     * This is to test the current player after the first edge is drawn.
+     */
+    @Test
+    public void testGetCurrentPlayerAfterFirstEdge()
+    {
+        testGetCurrentPlayerUponInit();
+
+        game.drawEdge(new Coordinate(0, 0), Direction.BOTTOM); // ACTION
+
+        assertEquals(Player.TWO, game.getCurrentPlayer());
+    }
+
+
+    /**
+     * This is to test the getScores method after init.
+     */
+    @Test
+    public void testGetScoresUponInit()
+    {
+        testValidInitSize();
+
+        Map<Player, Integer> scoreMap = game.getScores(); // ACTION
+
+        int player1Score = scoreMap.get(Player.ONE);
+        int player2Score = scoreMap.get(Player.TWO);
+
+        assertEquals(0, player1Score);
+        assertEquals(0, player2Score);
+
+        assertEquals(0, (int)scoreMap.get(Player.ONE));
+        assertEquals((Integer)0, scoreMap.get(Player.TWO));
+    }
+
+
+    /**
+     * Place a description of your method here.
+     */
+    @Test
+    public void testGetDrawnEdgesAtAfterInit()
+    {
+        testValidInitSize();
+
+        Collection<Direction> drawnEdges = game.getDrawnEdgesAt(new Coordinate(0, 1)); // ACTION
+
+        assertTrue(drawnEdges.isEmpty());
+    }
+
+
+    /**
+     * This is to test the getDrawnEdgesAt method after one drawn edge.
+     */
+    @Test
+    public void testGetDrawnEdgesAtAfterOneDrawEdge()
+    {
+        testValidInitSize();
+        game.drawEdge(new Coordinate(0, 1), Direction.BOTTOM);
+
+        Collection<Direction> drawnEdges = game.getDrawnEdgesAt(new Coordinate(0, 1)); // ACTION
+
+        assertEquals(1, drawnEdges.size());
+        assertTrue(drawnEdges.contains(Direction.BOTTOM));
+    }
+
+
+    /**
+     * This is to test the getDrawnEdgesAt method after two drawn edges.
+     */
+    @Test
+    public void testGetDrawnEdgesAtAfterTwoDrawEdges()
+    {
+        testValidInitSize();
+        game.drawEdge(new Coordinate(0, 1), Direction.BOTTOM);
+        game.drawEdge(new Coordinate(0, 1), Direction.RIGHT);
+
+        Collection<Direction> drawnEdges = game.getDrawnEdgesAt(new Coordinate(0, 1)); // ACTION
+
+        assertEquals(2, drawnEdges.size());
+        assertTrue(drawnEdges.contains(Direction.BOTTOM));
+        assertTrue(drawnEdges.contains(Direction.RIGHT));
+    }
+
+
+    /**
+     * This is to test whether a player can take another turn after completing an adjacent box.
+     */
+    @Test
+    public void testPlayerCompletingAdjacentBoxTakeAnotherTurn()
+    {
+        testValidInitSize();
+
+        game.drawEdge(new Coordinate(0, 0), Direction.TOP);
+        game.drawEdge(new Coordinate(0, 0), Direction.BOTTOM);
+        game.drawEdge(new Coordinate(0, 0), Direction.LEFT);
+        game.drawEdge(new Coordinate(1, 0), Direction.LEFT);
+
+        assertEquals(Player.TWO, game.getCurrentPlayer());
+    }
+
+
+    /**
+     * This is to test whether player one got a point.
+     */
+    @Test
+    public void testPlayerOneGettingPoint()
+    {
+        testValidInitSize();
+
+        game.drawEdge(new Coordinate(0, 0), Direction.TOP);
+        game.drawEdge(new Coordinate(0, 0), Direction.BOTTOM);
+        game.drawEdge(new Coordinate(0, 0), Direction.LEFT);
+        game.drawEdge(new Coordinate(1, 0), Direction.RIGHT);
+        game.drawEdge(new Coordinate(0, 0), Direction.RIGHT);
+
+        assertEquals(Player.ONE, game.getCurrentPlayer());
+    }
+
+
+    /**
+     * This is to test game over.
+     */
+    @Test
+    public void testGameOver()
+    {
+        testValidInitSize();
+
+        game.drawEdge(new Coordinate(0, 0), Direction.TOP);
+        game.drawEdge(new Coordinate(0, 0), Direction.BOTTOM);
+        game.drawEdge(new Coordinate(0, 0), Direction.LEFT);
+        game.drawEdge(new Coordinate(0, 0), Direction.RIGHT);
+        game.drawEdge(new Coordinate(1, 0), Direction.TOP);
+        game.drawEdge(new Coordinate(1, 0), Direction.BOTTOM);
+        game.drawEdge(new Coordinate(1, 0), Direction.LEFT);
+        game.drawEdge(new Coordinate(1, 0), Direction.RIGHT);
+        game.drawEdge(new Coordinate(0, 1), Direction.TOP);
+        game.drawEdge(new Coordinate(0, 1), Direction.BOTTOM);
+        game.drawEdge(new Coordinate(0, 1), Direction.LEFT);
+        game.drawEdge(new Coordinate(0, 1), Direction.RIGHT);
+        game.drawEdge(new Coordinate(1, 1), Direction.TOP);
+        game.drawEdge(new Coordinate(1, 1), Direction.BOTTOM);
+        game.drawEdge(new Coordinate(1, 1), Direction.LEFT);
+        game.drawEdge(new Coordinate(1, 1), Direction.RIGHT);
+
+        assertNull(game.getCurrentPlayer());
+
+    }
+
+
+    /**
+     * This is to test the game exception for a null direction.
+     */
+    @Test(expected = GameException.class)
+    public void testDrawEdgeDirectionNull()
+    {
+        testValidInitSize();
+        Coordinate test = new Coordinate(1, 1);
+        Direction testing = null;
+        game.drawEdge(test, testing);
+
+    }
+
+
+    /**
+     * This is a test of an adjacent box completion.
+     */
+    @Test
+    public void testAdjacentBoxCompletion()
+    {
+        game.init(2);
+
+        Coordinate coord = new Coordinate(1, 0);
+
+        game.drawEdge(coord, Direction.TOP);
+        game.drawEdge(coord, Direction.RIGHT);
+        game.drawEdge(coord, Direction.BOTTOM);
+
+        Coordinate coord2 = new Coordinate(0, 0);
+
+        game.drawEdge(coord2, Direction.TOP);
+        game.drawEdge(coord2, Direction.LEFT);
+        game.drawEdge(coord2, Direction.BOTTOM);
+        game.drawEdge(coord2, Direction.RIGHT);
+
+        assertEquals(Player.ONE, game.getOwnerAt(coord));
+        assertEquals(Player.ONE, game.getOwnerAt(coord2));
+
+        Map<Player, Integer> scoreMap = game.getScores();
+        assertEquals((Integer)2, scoreMap.get(Player.ONE));
+
+        assertEquals(Player.ONE, game.getCurrentPlayer());
+    }
+
+
+    /**
+     * This is to test a box is complete.
+     */
+    @Test
+    public void testBoxComplete1()
+    {
+        testValidInitSize();
+        game.drawEdge(new Coordinate(0, 0), Direction.TOP);
+        game.drawEdge(new Coordinate(0, 0), Direction.BOTTOM);
+        game.drawEdge(new Coordinate(0, 0), Direction.LEFT);
+        game.drawEdge(new Coordinate(0, 0), Direction.RIGHT);
+    }
+
+
+    /**
+     * This is to test a box is not complete, adjacent box is complete.
+     */
+    @Test
+    public void testBoxNotCompleteAdjComplete2()
+    {
+        testValidInitSize();
+        game.drawEdge(new Coordinate(0, 0), Direction.TOP);
+        game.drawEdge(new Coordinate(0, 0), Direction.BOTTOM);
+        game.drawEdge(new Coordinate(1, 1), Direction.TOP);
+        game.drawEdge(new Coordinate(1, 1), Direction.BOTTOM);
+        game.drawEdge(new Coordinate(1, 1), Direction.LEFT);
+        game.drawEdge(new Coordinate(1, 1), Direction.RIGHT);
+    }
+
+
+    /**
+     * This is to test a box is not complete, adjacent box is not complete.
+     */
+    @Test
+    public void testBoxNotCompleteAdjNotComplete3()
+    {
+        testValidInitSize();
+        game.drawEdge(new Coordinate(0, 0), Direction.TOP);
+        game.drawEdge(new Coordinate(0, 0), Direction.BOTTOM);
+        game.drawEdge(new Coordinate(1, 1), Direction.TOP);
+        game.drawEdge(new Coordinate(1, 1), Direction.BOTTOM);
+    }
+
+}
