@@ -1,0 +1,208 @@
+package edu.vt.cs5044;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * This is my Dots and Boxes interface.
+ * 
+ * @author mjohnsugie
+ * @version Oct 21, 2018
+ */
+public class DABGame
+    implements DotsAndBoxes
+{
+    private int                  gridSize;
+    private Map<Coordinate, Box> boxGrid;
+    private Player               currentPlayer;
+
+
+    /**
+     * This is a helper method for throwing a game exception if the grid size is less than zero.
+     */
+    private void checkInit()
+    {
+        if (gridSize == -1)
+        {
+            throw new GameException();
+        }
+    }
+
+
+    /**
+     * This is a helper method to throw a game exception is the box is null. Otherwise returning the
+     * box.
+     */
+    private Box findBox(Coordinate coord)
+    {
+        Box box = boxGrid.get(coord);
+        if (box == null)
+        {
+            throw new GameException();
+        }
+        return box;
+    }
+
+
+    /**
+     * Create a new DABGame object.
+     */
+    public DABGame()
+    {
+        gridSize = -1;
+        boxGrid = null;
+        currentPlayer = null;
+    }
+
+
+    @Override
+    public boolean drawEdge(Coordinate coord, Direction dir)
+    {
+        checkInit();
+        if (dir == null)
+        {
+            throw new GameException();
+        }
+        findBox(coord);
+        Box box = findBox(coord);
+        if (box.hasEdge(dir))
+        {
+            return false;
+        }
+        boolean boxCompleted = false;
+        box.addEdge(dir, currentPlayer);
+        if (box.isCompleted())
+        {
+            boxCompleted = true;
+        }
+        try
+        {
+            Box neighbor = findBox(coord.getNeighbor(dir));
+            neighbor.addEdge(dir.getOpposite(), currentPlayer);
+            if (neighbor.isCompleted())
+            {
+                boxCompleted = true;
+            }
+        }
+        catch (GameException ge)
+        {
+            // intentionally empty;
+        }
+        boolean adjBoxCompleted = false;
+        try
+        {
+            Box adjBox = findBox(coord.getNeighbor(dir.getOpposite()));
+            adjBoxCompleted = adjBox.getOwner() != null;
+            if (adjBox.isCompleted())
+            {
+                adjBoxCompleted = true;
+            }
+        }
+        catch (GameException ge)
+        {
+            // intentionally empty;
+        }
+        if (!boxCompleted && !adjBoxCompleted)
+        {
+            currentPlayer = currentPlayer.getOpponent();
+        }
+        return true;
+    }
+
+
+    @Override
+    public Player getCurrentPlayer()
+    {
+        checkInit();
+        Map<Player, Integer> scoreMap = getScores();
+        int player1Score = scoreMap.get(Player.ONE);
+        int player2Score = scoreMap.get(Player.TWO);
+        int sumPlayerScore = 0;
+        sumPlayerScore = player1Score + player2Score;
+        if (sumPlayerScore == boxGrid.size())
+        {
+            return null;
+        }
+
+        return currentPlayer;
+    }
+
+
+    @Override
+    public Collection<Direction> getDrawnEdgesAt(Coordinate coord)
+    {
+        checkInit();
+        Box box = findBox(coord);
+        return box.getDrawnEdges();
+    }
+
+
+    @Override
+    public Player getOwnerAt(Coordinate coord)
+    {
+        checkInit();
+        Box box = findBox(coord);
+        return box.getOwner();
+
+    }
+
+
+    @Override
+    public Map<Player, Integer> getScores()
+    {
+        checkInit();
+        int player1Score = 0;
+        int player2Score = 0;
+        for (Coordinate coord : boxGrid.keySet())
+        {
+            Box box = boxGrid.get(coord);
+            Player owner = box.getOwner();
+            if (owner == Player.ONE)
+            {
+                player1Score++;
+            }
+            if (owner == Player.TWO)
+            {
+                player2Score++;
+            }
+
+        }
+        Map<Player, Integer> scoreMap = new HashMap<Player, Integer>(); // construct a Map
+        scoreMap.put(Player.ONE, player1Score);
+        scoreMap.put(Player.TWO, player2Score);
+
+        return scoreMap;
+    }
+
+
+    @Override
+    public int getSize()
+    {
+        checkInit();
+        return gridSize;
+    }
+
+
+    @Override
+    public void init(int size)
+    {
+        if (size < 2)
+        {
+            throw new GameException();
+        }
+        currentPlayer = Player.ONE;
+        gridSize = size;
+        boxGrid = new HashMap<>();
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                boxGrid.put(new Coordinate(x, y), new Box());
+            }
+        }
+
+    }
+
+}
